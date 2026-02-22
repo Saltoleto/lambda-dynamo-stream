@@ -1,0 +1,60 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: DynamoDB Streams -> REST Notifier (Java 21 + Spring Boot)
+
+Globals:
+  Function:
+    Runtime: java21
+    Architectures:
+      # arm64 costuma ser melhor custo/perf; com Java 21, vale comparar com x86_64 em benchmarks.
+      - arm64
+    MemorySize: 1024
+    Timeout: 30
+    Tracing: Active
+
+Resources:
+  DynamoStreamNotifierFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dynamodb-stream-notifier-java21
+      Handler: com.saltinvest.streamlambda.handler.DynamoStreamHandler
+      CodeUri: target/dynamodb-stream-lambda-1.0.0-shaded.jar
+
+      # Cold start optimization (SnapStart snapshots INIT and restores on invoke)
+      SnapStart:
+        ApplyOn: PublishedVersions
+
+      AutoPublishAlias: live
+
+      Environment:
+        Variables:
+          TARGET_URL: https://example.com/webhook
+          CLIENT_CREDENTIALS_SECRET_NAME: your/secret/name
+          STS_TOKEN_URL: https://example.com/oauth/token
+          # STS_SCOPE: your-scope
+          # TARGET_API_KEY: your-api-key
+          # Optional: tune for faster startup (benchmark before using in production)
+          JAVA_TOOL_OPTIONS: "-XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: "*"
+
+      # Event source mapping example (you must wire your real stream ARN)
+      # Events:
+      #   Stream:
+      #     Type: DynamoDB
+      #     Properties:
+      #       Stream: arn:aws:dynamodb:REGION:ACCOUNT:table/TABLE_NAME/stream/TIMESTAMP
+      #       StartingPosition: LATEST
+      #       BatchSize: 100
+      #       MaximumRetryAttempts: 5
+      #       BisectBatchOnFunctionError: true
+
+Outputs:
+  FunctionName:
+    Value: !Ref DynamoStreamNotifierFunction
