@@ -1,0 +1,43 @@
+{
+  "Records": [
+    {
+      "eventID": "1",
+      "eventName": "INSERT",
+      "eventVersion": "1.1",
+      "eventSource": "aws:dynamodb",
+      "awsRegion": "sa-east-1",
+      "dynamodb": {
+        "ApproximateCreationDateTime": 1739999999,
+        "Keys": {
+          "pk": {
+            "S": "user#123"
+          },
+          "sk": {
+            "S": "order#999"
+          }
+        },
+        "NewImage": {
+          "pk": {
+            "S": "user#123"
+          },
+          "sk": {
+            "S": "order#999"
+          },
+          "status": {
+            "S": "CREATED"
+          },
+          "amount": {
+            "N": "199.90"
+          },
+          "isPaid": {
+            "BOOL": false
+          }
+        },
+        "SequenceNumber": "111",
+        "SizeBytes": 26,
+        "StreamViewType": "NEW_AND_OLD_IMAGES"
+      },
+      "eventSourceARN": "arn:aws:dynamodb:sa-east-1:123456789012:table/example/stream/2026-02-22T00:00:00.000"
+    }
+  ]
+}
